@@ -47,10 +47,19 @@ def create_features(df):
     df['density'] = df['carat'] / df['volume']  # Density of gems
     df['table_percentage'] = (df['table'] / ((df['x'] + df['y']) / 2)) * 100    # The table percentage (of the gem face)
     df['depth_percentage'] = (df['depth'] / ((df['x'] + df['y']) / 2)) * 100    # The depth percentage
-    # df['symmetry'] = (abs(df['x'] - df['z']) + abs(df['y'] - df['z'])) / (df['x'] + df['y'] + df['z'])  # Symmetry of the gem
+    df['symmetry'] = (abs(df['x'] - df['z']) + abs(df['y'] - df['z'])) / (df['x'] + df['y'] + df['z'])  # Symmetry of the gem
     df['surface_area'] = 2 * ((df['x'] * df['y']) + (df['x'] * df['z']) + (df['y'] * df['z']))  # Surface area of gem
     df['depth_to_table_ratio'] = df['depth'] / df['table']  # ratio
+    df['aspect_ratio'] = df['x'] / df['y']  # aspect ratio
+    df['aspect_ratio_carat'] = df['aspect_ratio'] / df['carat']**3  # aspect ratio * carat
+    df["new_y"] = df[["x", "y"]].apply(lambda row: row.y if row.y <= row.x else row.x, axis=1)
+    df["new_x"] = df[["x", "y"]].apply(lambda row: row.y if row.y >= row.x else row.x, axis=1)
 
+    # Replace x with new_x and y with new_y and drop 
+    df['x'] = df['new_x']
+    df['y'] = df['new_y']
+    df = df.drop(columns=['new_x', 'new_y'])
+    
     return df
 
 # Create new features
@@ -115,4 +124,5 @@ test_df = create_features(test_df)
 test_df = test_df.drop(columns='id')
 
 # Save the test data
+print('Saving teset data under ./Data/testing_data.csv')
 test_df.to_csv('./Data/testing_data.csv', index=False)
